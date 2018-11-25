@@ -18,42 +18,25 @@
         quantity (:quantity @reservation)
         doc form-data
         error-map errors
-        is_email_valid (util/validate-email email)
         is_form_valid (atom false)]
 
-    (if (empty? name)
-      (do
-        (reset! is_form_valid false)
-        (swap! error-map assoc :name [:label "Campo " [:strong "Nome"] " é obrigatório!"]))
+    (if (util/is_valid_field empty? error-map :name name)
+      (reset! is_form_valid true)
+      (reset! is_form_valid false))
+
+    (if (util/is_valid_field util/validate-integer error-map :quantity quantity)
+      (reset! is_form_valid true)
+      (reset! is_form_valid false))
+
+    (if (util/is_valid_field empty? error-map :email email)
       (do
         (reset! is_form_valid true)
-        (swap! error-map dissoc @error-map :name)))
+        (if (util/is_valid_field util/validate-email error-map :email email (list "Campo " [:strong "Email"] " inválido!"))
+          (reset! is_form_valid true)
+          (reset! is_form_valid false)))
+      (reset! is_form_valid false))
 
-    (if (<= quantity 0)
-      (do
-        (reset! is_form_valid false)
-        (swap! error-map assoc :quantity [:label "Campo " [:strong "Quantidade"] " deve ser maior que zero!"]))
-      (do
-        (reset! is_form_valid true)
-        (swap! error-map dissoc @error-map :quantity)))
 
-    (if (empty? email)
-      (do
-        (reset! is_form_valid false)
-        (swap! error-map assoc :email [:label "Campo " [:strong "Email"] " é obrigatório!"])
-        )
-      (do
-        (reset! is_form_valid true)
-        (swap! error-map dissoc @error-map :email)
-
-        (if (false? is_email_valid)
-          (do
-            (reset! is_form_valid false)
-            (swap! error-map assoc :email [:label "Campo " [:strong "Email"] " inválido!"]))
-          (do
-            (reset! is_form_valid true)
-            (swap! error-map dissoc @error-map :email))))
-      )
     (if (true? @is_form_valid)
       (do
         (swap! doc assoc-in [:email] email)
