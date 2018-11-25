@@ -12,8 +12,11 @@
       (if (> (count error_map) 0)
         [:div.alert.alert-danger {:field :alert} (util/to-bullet-list (vals error_map))]))))
 
-(defn check-required-fields [name email quantity]
-  (let [doc form-data
+(defn check-required-fields [reservation]
+  (let [name (:name @reservation)
+        email (:email @reservation)
+        quantity (:quantity @reservation)
+        doc form-data
         error-map errors
         is_email_valid (util/validate-email email)
         is_form_valid (atom false)]
@@ -60,9 +63,8 @@
         ))))
 
 (defn form-template []
-  (let [name (atom nil)
-        email (atom nil)
-        quantity (atom 1)]
+  (let [reservation form-data
+        quantity (:quantity @form-data)]
     (fn []
       [:form
        [:div.form-group
@@ -72,8 +74,8 @@
                  :class         "form-control"
                  :type          :text
                  :required      true
-                 :default-value @name
-                 :on-change     #(reset! name (-> % .-target .-value))
+                 :default-value (:name @form-data)
+                 :on-change     #(swap! form-data assoc :name (-> % .-target .-value))
                  }]]
        [:div.form-group
         [:label "Email:"]
@@ -82,12 +84,12 @@
                  :class         "form-control"
                  :type          :email
                  :required      true
-                 :default-value @email
-                 :on-change     #(reset! email (-> % .-target .-value))
+                 :default-value (:email @form-data)
+                 :on-change     #(swap! form-data assoc :email (-> % .-target .-value))
                  }]]
        [:div.form-group
         [:label {:style {:marginRight "5px"}} "Quantidade:"]
-        [:label @quantity]
+        [:label (:quantity @form-data)]
         [:input {:id            :quantity
                  :name          :quantity
                  :class         "form-control"
@@ -95,13 +97,13 @@
                  :min           1
                  :max           10
                  :required      true
-                 :default-value @quantity
-                 :on-change     #(reset! quantity (-> % .-target .-value))
+                 :default-value (:quantity @form-data)
+                 :on-change     #(swap! form-data assoc :quantity (-> % .-target .-value))
                  }]]
 
        [:div.form-group
         [:button..btn.btn-primary {:type     "button"
-                                   :on-click #(check-required-fields @name @email @quantity)
+                                   :on-click #(check-required-fields reservation)
                                    } "Enviar!"]]])))
 
 
